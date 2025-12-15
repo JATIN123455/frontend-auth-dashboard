@@ -46,5 +46,4 @@ The project demonstrates secure authentication, frontend–backend integration, 
 
 ---
 
-## 📁 Project Structure
 
