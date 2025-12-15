@@ -1,0 +1,48 @@
+routes/authRoutes.js
+const router = require("express").Router();
+const auth = require("../controllers/authController");
+const protect = require("../middleware/authMiddleware");
+
+router.post("/register", auth.register);
+router.post("/login", auth.login);
+router.get("/profile", protect, auth.profile);
+
+module.exports = router;
+
+routes/taskRoutes.js
+const router = require("express").Router();
+const protect = require("../middleware/authMiddleware");
+const task = require("../controllers/taskController");
+
+router.use(protect);
+router.post("/", task.createTask);
+router.get("/", task.getTasks);
+router.delete("/:id", task.deleteTask);
+
+module.exports = router;
+
+app.js
+const express = require("express");
+const cors = require("cors");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/tasks", require("./routes/taskRoutes"));
+
+module.exports = app;
+
+server.js
+require("dotenv").config();
+const mongoose = require("mongoose");
+const app = require("./app");
+
+mongoose.connect(process.env.MONGO_URI).then(() => {
+  app.listen(5000, () => console.log("Backend running on 5000"));
+});
+
+.env
+MONGO_URI=your_mongo_uri
+JWT_SECRET=supersecret
