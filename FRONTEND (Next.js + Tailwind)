@@ -1,0 +1,93 @@
+1️⃣  Create App
+npx create-next-app frontend
+cd frontend
+npm install axios
+npm install -D tailwindcss postcss autoprefixer
+
+
+ 2️⃣ Simple Auth Utility
+utils/api.js
+import axios from "axios";
+
+export const api = axios.create({
+  baseURL: "http://localhost:5000/api"
+});
+
+export const setToken = (token) => {
+  api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+};
+
+
+
+3️⃣ Login Page
+app/login/page.jsx
+"use client";
+import { useState } from "react";
+import { api, setToken } from "@/utils/api";
+import { useRouter } from "next/navigation";
+
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const router = useRouter();
+
+  const submit = async () => {
+    const res = await api.post("/auth/login", { email, password });
+    localStorage.setItem("token", res.data.token);
+    setToken(res.data.token);
+    router.push("/dashboard");
+  };
+
+  return (
+    <div className="h-screen flex items-center justify-center">
+      <div className="p-6 border rounded w-80">
+        <input className="border p-2 w-full" placeholder="Email" onChange={e=>setEmail(e.target.value)} />
+        <input className="border p-2 w-full mt-2" type="password" placeholder="Password" onChange={e=>setPassword(e.target.value)} />
+        <button onClick={submit} className="bg-black text-white w-full mt-4 p-2">Login</button>
+      </div>
+    </div>
+  );
+}
+
+4️⃣ Dashboard Page
+app/dashboard/page.jsx
+"use client";
+import { useEffect, useState } from "react";
+import { api, setToken } from "@/utils/api";
+
+export default function Dashboard() {
+  const [tasks, setTasks] = useState("");
+  const [list, setList] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setToken(token);
+    load();
+  }, []);
+
+  const load = async () => {
+    const res = await api.get("/tasks");
+    setList(res.data);
+  };
+
+  const addTask = async () => {
+    await api.post("/tasks", { title: tasks });
+    setTasks("");
+    load();
+  };
+
+  return (
+    <div className="p-6">
+      <h1 className="text-xl font-bold">Dashboard</h1>
+
+      <div className="flex gap-2 mt-4">
+        <input className="border p-2" value={tasks} onChange={e=>setTasks(e.target.value)} />
+        <button onClick={addTask} className="bg-blue-600 text-white px-4">Add</button>
+      </div>
+
+      <ul className="mt-4">
+        {list.map(t => <li key={t._id}>{t.title}</li>)}
+      </ul>
+    </div>
+  );
+}
